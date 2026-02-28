@@ -12,6 +12,10 @@
   <meta name="theme-color" content="#0d0d1a" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
   <meta name="color-scheme" content="dark light">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Transformo">
   <link rel="canonical" href="https://transformo.vercel.app/">
   <meta property="og:title" content="Transformo — Universal File Converter">
   <meta property="og:description"
@@ -31,6 +35,7 @@
     href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
     rel="stylesheet">
   <link rel="manifest" href="site.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="style.css">
   <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
   <script type="application/ld+json">
@@ -117,6 +122,15 @@
       </a>
 
       <nav class="header-actions" aria-label="App controls">
+        <!-- PWA install -->
+        <button id="install-app-button" class="btn btn--ghost" type="button" hidden title="Install app">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+            <path d="M7.5 1.5v7.5M4.6 6.1l2.9 2.9 2.9-2.9M2 12.5h11" stroke="currentColor" stroke-width="1.35"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span class="mode-label">Install</span>
+        </button>
+
         <!-- Theme toggle -->
         <button id="theme-button" class="icon-btn" type="button" aria-label="Toggle light/dark mode"
           title="Toggle theme">

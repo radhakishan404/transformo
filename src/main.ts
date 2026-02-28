@@ -16,6 +16,7 @@ import { showToast } from './ui/toast.ts';
 import { hidePopup, showProgressPopup, showSuccessPopup } from './ui/popup.ts';
 import { initAnalytics, trackEvent } from './analytics.ts';
 import { getMonetizationSettings } from './monetization.ts';
+import { initPwa } from './pwa.ts';
 import {
   setDropZoneIdle,
   setDropZoneLoaded,
@@ -75,6 +76,7 @@ const formatCache = new Map<string, import('./FormatHandler.ts').FileFormat[]>()
 const engine = createConversionEngine(formatCache, traversalGraph, handlers);
 
 initAnalytics();
+initPwa(trackEvent);
 
 // Expose debug helpers on window (stripped in production builds by the bundler).
 if (import.meta.env.DEV) {

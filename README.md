@@ -20,6 +20,7 @@ Transformo is built to feel premium while staying open source and free for core 
 - Smart format detection from uploaded file
 - Suggested output formats based on compatibility/quality/size goals
 - Animated conversion UX with progress and route feedback
+- Installable PWA with offline app-shell support
 - Supports a wide range of image, audio, video, document, data, archive, and font formats
 
 ## Quick start
