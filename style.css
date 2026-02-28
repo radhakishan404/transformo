@@ -912,12 +912,16 @@ strong {
   inset: 0;
   z-index: 201;
   display: none;
-  place-items: center;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(10px, 3vh, 28px);
   pointer-events: none;
 }
 
-.popup[style*="display: block"] {
-  display: grid;
+.popup[aria-hidden="false"],
+.popup[style*="display: block"],
+.popup[style*="display:block"] {
+  display: flex;
 }
 
 .popup-inner {
@@ -935,6 +939,8 @@ strong {
   text-align: center;
   box-shadow: var(--shadow-popup);
   animation: popupIn var(--duration-slow) var(--easing-spring);
+  max-height: min(92dvh, 860px);
+  overflow: auto;
 }
 
 .popup-success-glow {
