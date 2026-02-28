@@ -93,7 +93,10 @@ export function initPwa(trackEvent?: TrackFn): void {
 
   const swUrl = `${import.meta.env.BASE_URL}sw.js`;
   navigator.serviceWorker
-    .register(swUrl, { scope: import.meta.env.BASE_URL })
+    .register(swUrl, {
+      scope: import.meta.env.BASE_URL,
+      updateViaCache: 'none',
+    })
     .then(() => {
       trackEvent?.('pwa_service_worker_registered');
     })

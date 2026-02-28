@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'transformo-v1';
+const CACHE_VERSION = 'transformo-v2';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-app-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -39,6 +39,12 @@ self.addEventListener('fetch', event => {
   const requestUrl = new URL(request.url);
   if (requestUrl.origin !== self.location.origin) return;
 
+  // Keep WASM runtime files network-first to avoid stale JS/WASM mismatch.
+  if (requestUrl.pathname.includes('/wasm/')) {
+    event.respondWith(fetch(request).catch(() => caches.match(request)));
+    return;
+  }
+
   if (request.mode === 'navigate') {
     event.respondWith(handleNavigation(request));
     return;
@@ -46,7 +52,6 @@ self.addEventListener('fetch', event => {
 
   const isAssetRequest =
     requestUrl.pathname.includes('/assets/') ||
-    requestUrl.pathname.includes('/wasm/') ||
     ['script', 'style', 'image', 'font'].includes(request.destination);
 
   if (!isAssetRequest) return;

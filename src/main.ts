@@ -447,7 +447,11 @@ async function initialiseHandlers(): Promise<void> {
   renderFormatLists(simpleMode);
   const tasks = handlers.map(async handler => {
     try {
-      await handler.init();
+      await withTimeout(
+        handler.init(),
+        12000,
+        `Handler "${handler.name}" initialization timed out`,
+      );
       const formats = handler.supportedFormats ?? [];
       if (formats.length) {
         formatCache.set(handler.name, formats);
@@ -468,6 +472,19 @@ async function initialiseHandlers(): Promise<void> {
   if (selectedFiles.length) autoSelectFormatsForFiles(selectedFiles, false);
   updateConvertBar();
   showToast('Formats loaded — ready to convert!', 'success', 3000);
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  return new Promise<T>((resolve, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+    promise
+      .then(value => resolve(value))
+      .catch(error => reject(error))
+      .finally(() => {
+        if (timer) clearTimeout(timer);
+      });
+  });
 }
 
 function rebuildFormatLists(): void {
