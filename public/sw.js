@@ -1,11 +1,10 @@
-const CACHE_VERSION = 'transformo-v2';
+const CACHE_VERSION = 'transformo-v3';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-app-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
 const CORE_ASSETS = [
   new URL('./', self.registration.scope).toString(),
   new URL('index.html', self.registration.scope).toString(),
-  new URL('style.css', self.registration.scope).toString(),
   new URL('site.webmanifest', self.registration.scope).toString(),
   new URL('favicon.ico', self.registration.scope).toString(),
   new URL('icons/icon-192.png', self.registration.scope).toString(),
@@ -14,9 +13,12 @@ const CORE_ASSETS = [
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(APP_SHELL_CACHE).then(cache => cache.addAll(CORE_ASSETS)),
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(APP_SHELL_CACHE);
+    await Promise.allSettled(
+      CORE_ASSETS.map(asset => cache.add(asset)),
+    );
+  })());
   self.skipWaiting();
 });
 

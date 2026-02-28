@@ -9,8 +9,12 @@ const normalizedBase = rawBase.startsWith("/")
 const base = normalizedBase.endsWith("/")
   ? normalizedBase
   : `${normalizedBase}/`;
+const buildId = process.env.VERCEL_GIT_COMMIT_SHA || `${Date.now()}`;
 
 export default defineConfig({
+  define: {
+    __TRANSFORMO_BUILD_ID__: JSON.stringify(buildId),
+  },
   optimizeDeps: {
     exclude: [
       "@ffmpeg/ffmpeg",

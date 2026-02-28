@@ -77,6 +77,9 @@ const TRACKER_FORMATS: Array<{ ext: string; name: string; mime?: string }> = [
 
 const SAMPLE_RATE = 48000;
 const wasmBaseUrl = `${import.meta.env.BASE_URL}wasm/`;
+const buildToken = encodeURIComponent(__TRANSFORMO_BUILD_ID__);
+const assetUrl = (fileName: string) => `${wasmBaseUrl}${fileName}?v=${buildToken}`;
+let libOpenMptScriptPromise: Promise<void> | null = null;
 
 class libopenmptHandler implements FormatHandler {
 
@@ -88,7 +91,7 @@ class libopenmptHandler implements FormatHandler {
 
   async init (): Promise<void> {
     // Pre-fetch the WASM binary so the Emscripten module can use it directly.
-    const wasmBinary = await fetch(`${wasmBaseUrl}libopenmpt.wasm`)
+    const wasmBinary = await fetch(assetUrl('libopenmpt.wasm'))
       .then(r => r.arrayBuffer());
 
     // Set the global that Emscripten picks up:
@@ -97,19 +100,22 @@ class libopenmptHandler implements FormatHandler {
     // and __render (uses closure-scoped HEAPU8/HEAP16) before calling run().
     (globalThis as any).libopenmpt = {
       wasmBinary,
-      locateFile: (fileName: string) => `${wasmBaseUrl}${fileName}`
+      locateFile: (fileName: string) => assetUrl(fileName)
     };
     (globalThis as any).__TRANSFORMO_BASE_URL__ = import.meta.env.BASE_URL;
 
     // Load as a classic <script> tag so it is never run through Rollup/Vite's
     // module pipeline (which would break the Emscripten global-variable pattern).
-    await new Promise<void>((resolve, reject) => {
-      const script = document.createElement("script");
-      script.src = `${wasmBaseUrl}libopenmpt.js`;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error("Failed to load libopenmpt.js"));
-      document.head.appendChild(script);
-    });
+    if (!libOpenMptScriptPromise) {
+      libOpenMptScriptPromise = new Promise<void>((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = assetUrl('libopenmpt.js');
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load libopenmpt.js'));
+        document.head.appendChild(script);
+      });
+    }
+    await libOpenMptScriptPromise;
 
     // __readyPromise was attached by our libopenmpt.js patch and resolves with
     // the Module object once onRuntimeInitialized fires.
