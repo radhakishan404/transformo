@@ -50,8 +50,6 @@ declare global {
     dataLayer?: unknown[];
     /** Google Analytics global event function (optional). */
     gtag?: (...args: unknown[]) => void;
-    /** Google AdSense queue (optional). */
-    adsbygoogle?: unknown[];
   }
 }
 

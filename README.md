@@ -44,7 +44,6 @@ Copy `.env.example` to `.env` and set only what you need.
 - `VITE_BASE_PATH` (`/` for Vercel, `/transformo/` for GitHub Pages)
 - `VITE_GA_MEASUREMENT_ID` (optional, GA4)
 - `VITE_FEEDBACK_URL` (optional)
-- `VITE_ADSENSE_CLIENT_ID` + `VITE_ADSENSE_SLOT_ID` (optional)
 
 ## Deploy
 

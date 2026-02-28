@@ -32,7 +32,6 @@ export const AppElements = {
     outputFormatCount: requireElement<HTMLSpanElement>('#to-count'),
 
     convertInfoText: requireElement<HTMLParagraphElement>('#convert-info-text'),
-    supportStrip: requireElement<HTMLElement>('#support-strip'),
 
     popupOverlay: requireElement<HTMLDivElement>('#popup-bg'),
     popupBox: requireElement<HTMLDivElement>('#popup'),

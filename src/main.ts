@@ -15,7 +15,7 @@ import { AppElements } from './ui/elements.ts';
 import { showToast } from './ui/toast.ts';
 import { hidePopup, showProgressPopup, showSuccessPopup } from './ui/popup.ts';
 import { initAnalytics, trackEvent } from './analytics.ts';
-import { getMonetizationSettings, setupAdsenseSlot } from './monetization.ts';
+import { getMonetizationSettings } from './monetization.ts';
 import {
   setDropZoneIdle,
   setDropZoneLoaded,
@@ -75,7 +75,6 @@ const formatCache = new Map<string, import('./FormatHandler.ts').FileFormat[]>()
 const engine = createConversionEngine(formatCache, traversalGraph, handlers);
 
 initAnalytics();
-void setupAdsenseSlot();
 
 // Expose debug helpers on window (stripped in production builds by the bundler).
 if (import.meta.env.DEV) {
@@ -113,8 +112,6 @@ AppElements.themeToggleButton.addEventListener('click', () => {
     // Ignore storage failures (private browsing, quota, etc.)
   }
 });
-
-configureMonetizationStrip();
 
 // ─── Drop zone interaction ────────────────────────────────────────────────────
 
@@ -417,11 +414,6 @@ function downloadFiles(files: FileData[], extension: string): void {
     // Revoke after a tick to ensure the browser has started the download.
     setTimeout(() => URL.revokeObjectURL(url), 100);
   }
-}
-
-function configureMonetizationStrip(): void {
-  const showSupportSurface = monetization.adsEnabled;
-  AppElements.supportStrip.hidden = !showSupportSurface;
 }
 
 function openExternalLink(url: string, eventName: string, source: string): void {

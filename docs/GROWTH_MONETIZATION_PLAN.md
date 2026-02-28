@@ -55,9 +55,7 @@ Use only after traffic quality improves.
 1. Create AdSense account and connect domain.
 2. Ensure policy pages exist (privacy/terms/contact).
 3. Get approved.
-4. Add ad client and slot:
-   - `VITE_ADSENSE_CLIENT_ID`
-   - `VITE_ADSENSE_SLOT_ID`
+4. Keep ad integration disabled until policies, UX placement, and quality thresholds are final.
 
 ## Conversion Funnel Targets
 

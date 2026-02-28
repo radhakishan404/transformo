@@ -840,73 +840,6 @@ strong {
   box-shadow: inset 0 0 18px rgba(22, 199, 154, 0.2), 0 0 0 1px rgba(22, 199, 154, 0.20);
 }
 
-/* ── Support strip ────────────────────────────────────────── */
-.support-strip {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: var(--space-4);
-  align-items: center;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  padding: var(--space-5);
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
-    radial-gradient(140% 120% at 90% 5%, rgba(113, 244, 255, 0.11), transparent 60%);
-  overflow: hidden;
-}
-
-.support-strip::after {
-  content: '';
-  position: absolute;
-  inset: auto -20% -55% -20%;
-  height: 120px;
-  background: linear-gradient(90deg, transparent, rgba(113, 244, 255, 0.09), transparent);
-  pointer-events: none;
-}
-
-.support-strip__copy {
-  display: grid;
-  gap: 6px;
-}
-
-.support-strip__eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--color-text-secondary);
-}
-
-.support-strip__title {
-  font-size: clamp(1.05rem, 0.5vw + 0.95rem, 1.4rem);
-  letter-spacing: -0.03em;
-}
-
-.support-strip__sub {
-  color: var(--color-text-secondary);
-  font-size: 0.88rem;
-  max-width: 60ch;
-}
-
-.support-strip__ad {
-  grid-column: 1 / -1;
-  border-radius: var(--radius-md);
-  border: 1px dashed var(--color-border);
-  padding: var(--space-3);
-  min-height: 84px;
-  display: grid;
-  place-items: center;
-  color: var(--color-text-muted);
-  font-size: 0.78rem;
-  letter-spacing: 0.03em;
-  text-align: center;
-}
-
-.support-strip__ad--fallback {
-  background: rgba(255, 255, 255, 0.025);
-}
-
 /* ── Skeleton loader ──────────────────────────────────────── */
 .skeleton {
   height: 34px;
@@ -1885,12 +1818,6 @@ strong {
   box-shadow: 0 12px 32px rgba(13, 38, 74, 0.08);
 }
 
-[data-theme='light'] .support-strip {
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.66)),
-    radial-gradient(120% 90% at 95% 10%, rgba(45, 151, 243, 0.14), transparent 66%);
-}
-
 [data-theme='light'] .overlay {
   background: rgba(19, 43, 74, 0.36);
 }
@@ -1926,9 +1853,6 @@ strong {
     font-size: 0.58rem;
   }
 
-  .support-strip {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 600px) {
