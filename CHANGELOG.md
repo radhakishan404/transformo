@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-02-28
+
 ### Added
 - Launch preparation for Vercel deployment (`vercel.json`).
 - SEO assets and metadata improvements (`robots.txt`, `sitemap.xml`, JSON-LD, OG/Twitter tags).
@@ -15,4 +17,3 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ### Changed
 - Vite base path is now configurable via `VITE_BASE_PATH`.
-
