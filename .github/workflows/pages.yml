@@ -1,0 +1,69 @@
+name: Publish to GitHub Pages
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      VITE_BASE_PATH: /transformo/
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "latest"
+          cache: true
+
+      - name: Install dependencies
+        run: bun i --frozen-lockfile
+
+      - name: Build
+        run: |
+          export VITE_COMMIT_SHA=${{ github.sha }}
+          bun run build:pages
+
+      - name: Generate cache
+        run: bun run cache:build
+
+      - name: Test traversion graph
+        run: bun test test/TraversionGraph.test.ts
+
+      - name: Test common conversion routes
+        run: bun test test/commonFormats.test.ts
+
+      - name: Upload Pages artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

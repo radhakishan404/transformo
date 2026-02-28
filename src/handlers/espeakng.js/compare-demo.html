@@ -1,0 +1,300 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>eSpeak-ng Audio Enhancement Comparison</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      h1 {
+        font-size: 24px;
+        margin-bottom: 10px;
+      }
+      .subtitle {
+        color: #666;
+        margin-bottom: 30px;
+      }
+      .comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+      .mode-card {
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+      }
+      .mode-card.active {
+        border-color: #2196f3;
+        background: #e3f2fd;
+      }
+      .mode-card h3 {
+        margin: 0 0 10px 0;
+      }
+      .mode-card p {
+        margin: 0 0 15px 0;
+        font-size: 14px;
+        color: #666;
+      }
+      button {
+        background: #2196f3;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        width: 100%;
+      }
+      button:hover {
+        background: #1976d2;
+      }
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+        min-height: 100px;
+        box-sizing: border-box;
+        margin-bottom: 20px;
+      }
+      .controls {
+        background: #f5f5f5;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+      .control-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+      .control-row label {
+        flex: 0 0 100px;
+        font-weight: 500;
+      }
+      .control-row input {
+        flex: 1;
+        margin: 0 10px;
+      }
+      .control-row span {
+        flex: 0 0 50px;
+        text-align: right;
+      }
+      .features {
+        background: #e8f5e9;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+      .features h4 {
+        margin: 0 0 10px 0;
+      }
+      .features ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+      .status {
+        padding: 10px;
+        border-radius: 4px;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .status.loading {
+        background: #fff3cd;
+        color: #856404;
+      }
+      .status.ready {
+        background: #d4edda;
+        color: #155724;
+      }
+      @media (max-width: 600px) {
+        .comparison-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Audio Enhancement Comparison</h1>
+    <p class="subtitle">Compare standard vs enhanced audio processing</p>
+
+    <div class="features">
+      <h4>🎯 Enhanced Audio Features:</h4>
+      <ul>
+        <li>Pre-emphasis filter for clarity</li>
+        <li>Noise gate to remove background noise</li>
+        <li>Spectral enhancement for richer sound</li>
+        <li>De-esser to reduce harsh 's' sounds</li>
+        <li>Dynamic range compression</li>
+        <li>Intelligent normalization</li>
+      </ul>
+    </div>
+
+    <textarea id="text" placeholder="Enter text to speak...">The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet, making it perfect for testing speech synthesis quality.</textarea>
+
+    <div class="controls">
+      <div class="control-row">
+        <label>Voice:</label>
+        <select id="voice" style="flex: 1; margin: 0 10px;">
+          <option value="">Loading...</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <label>Rate:</label>
+        <input type="range" id="rate" min="80" max="450" value="175">
+        <span id="rate-value">175</span>
+      </div>
+      <div class="control-row">
+        <label>Pitch:</label>
+        <input type="range" id="pitch" min="0" max="100" value="50">
+        <span id="pitch-value">50</span>
+      </div>
+      <div class="control-row">
+        <label>Volume:</label>
+        <input type="range" id="volume" min="0" max="150" value="100">
+        <span id="volume-value">100</span>
+      </div>
+    </div>
+
+    <div class="comparison-grid">
+      <div class="mode-card" id="standard-card">
+        <h3>Standard Audio</h3>
+        <p>Basic normalization only</p>
+        <button id="standard-btn" disabled>Play Standard</button>
+      </div>
+      <div class="mode-card active" id="enhanced-card">
+        <h3>Enhanced Audio</h3>
+        <p>Full audio processing pipeline</p>
+        <button id="enhanced-btn" disabled>Play Enhanced</button>
+      </div>
+    </div>
+
+    <div id="status" class="status loading">Loading eSpeak-ng...</div>
+
+    <script src="js/espeakng-simple.js"></script>
+    <script>
+      let tts = null;
+      let currentMode = 'enhanced';
+
+      // Get elements
+      const standardBtn = document.getElementById('standard-btn');
+      const enhancedBtn = document.getElementById('enhanced-btn');
+      const standardCard = document.getElementById('standard-card');
+      const enhancedCard = document.getElementById('enhanced-card');
+      const status = document.getElementById('status');
+      const voiceSelect = document.getElementById('voice');
+      const textArea = document.getElementById('text');
+      const rateSlider = document.getElementById('rate');
+      const pitchSlider = document.getElementById('pitch');
+      const volumeSlider = document.getElementById('volume');
+
+      // Update slider values
+      rateSlider.oninput = () => document.getElementById('rate-value').textContent = rateSlider.value;
+      pitchSlider.oninput = () => document.getElementById('pitch-value').textContent = pitchSlider.value;
+      volumeSlider.oninput = () => document.getElementById('volume-value').textContent = volumeSlider.value;
+
+      // Initialize TTS
+      function init() {
+        tts = new SimpleTTS({
+          defaultVoice: 'en-us',
+          enhanceAudio: true
+        });
+
+        tts.onReady((error) => {
+          if (error) {
+            status.textContent = 'Failed to load eSpeak-ng';
+            return;
+          }
+
+          status.textContent = 'Ready! Click a button to compare audio quality.';
+          status.className = 'status ready';
+          standardBtn.disabled = false;
+          enhancedBtn.disabled = false;
+
+          // Load voices
+          tts.getVoices((voices) => {
+            voiceSelect.innerHTML = '';
+            voices.forEach(voice => {
+              const option = document.createElement('option');
+              option.value = voice.identifier;
+              option.textContent = voice.name + ' (' + voice.languages.map(l => l.name).join(', ') + ')';
+              if (voice.identifier === 'en-us') {
+                option.selected = true;
+              }
+              voiceSelect.appendChild(option);
+            });
+          });
+        });
+      }
+
+      // Play speech
+      function playSpeech(enhance) {
+        const options = {
+          voice: voiceSelect.value,
+          rate: parseInt(rateSlider.value),
+          pitch: parseInt(pitchSlider.value),
+          volume: parseInt(volumeSlider.value) / 100,
+          enhance: enhance
+        };
+
+        // Update UI
+        if (enhance) {
+          standardCard.classList.remove('active');
+          enhancedCard.classList.add('active');
+          status.textContent = 'Playing enhanced audio...';
+        } else {
+          enhancedCard.classList.remove('active');
+          standardCard.classList.add('active');
+          status.textContent = 'Playing standard audio...';
+        }
+
+        // Disable buttons
+        standardBtn.disabled = true;
+        enhancedBtn.disabled = true;
+
+        tts.speak(textArea.value, options, (audioData) => {
+          if (!audioData) {
+            status.textContent = 'Failed to generate speech';
+            standardBtn.disabled = false;
+            enhancedBtn.disabled = false;
+            return;
+          }
+
+          const playback = SimpleTTS.playAudioData(audioData, {
+            reverb: enhance // Add subtle reverb to enhanced version
+          });
+
+          if (playback) {
+            playback.source.onended = () => {
+              status.textContent = 'Ready! Try the other mode to compare.';
+              status.className = 'status ready';
+              standardBtn.disabled = false;
+              enhancedBtn.disabled = false;
+            };
+          }
+        });
+      }
+
+      // Button handlers
+      standardBtn.onclick = () => playSpeech(false);
+      enhancedBtn.onclick = () => playSpeech(true);
+
+      // Initialize
+      init();
+    </script>
+  </body>
+</html>

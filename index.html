@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="description"
+    content="Transformo — Convert any file to any format instantly, right in your browser. No uploads, no limits, no privacy compromise.">
+  <meta name="keywords"
+    content="file converter, universal converter, convert files online, free converter, private file converter">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="theme-color" content="#0d0d1a" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="color-scheme" content="dark light">
+  <link rel="canonical" href="https://transformo.vercel.app/">
+  <meta property="og:title" content="Transformo — Universal File Converter">
+  <meta property="og:description"
+    content="Convert any file to any format, right in your browser. No uploads. No limits. No privacy compromise.">
+  <meta property="og:url" content="https://transformo.vercel.app/">
+  <meta property="og:site_name" content="Transformo">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://transformo.vercel.app/favicon.ico">
+  <meta property="og:image:alt" content="Transformo logo">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Transformo — Universal File Converter">
+  <meta name="twitter:description" content="Convert any file to any format, right in your browser. No uploads. No limits.">
+  <meta name="twitter:image" content="https://transformo.vercel.app/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Transformo",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Web Browser",
+      "description": "Universal file converter that runs fully in your browser with no uploads.",
+      "url": "https://transformo.vercel.app/",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+  </script>
+  <script>
+    (function () {
+      if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return;
+      var basePath = location.pathname.startsWith('/transformo/') ? '/transformo/' : '/';
+      var canonicalUrl = location.origin + basePath;
+      var canonical = document.querySelector('link[rel="canonical"]');
+      if (canonical) canonical.setAttribute('href', canonicalUrl);
+      var ogUrl = document.querySelector('meta[property="og:url"]');
+      if (ogUrl) ogUrl.setAttribute('content', canonicalUrl);
+    })();
+  </script>
+  <title>Transformo — Universal File Converter</title>
+</head>
+
+<body>
+
+  <!-- Hidden file input -->
+  <input id="file-input" type="file" multiple aria-hidden="true" tabindex="-1">
+
+  <!-- ── Full-page drag overlay (shown when user drags file over window) ── -->
+  <div id="drag-overlay" class="drag-overlay" aria-hidden="true" role="presentation">
+    <div class="drag-overlay__inner">
+      <div class="drag-overlay__icon">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="31" stroke="url(#dragCircleGrad)" stroke-width="2" stroke-dasharray="6 4" />
+          <path d="M32 20v16M32 20l-7 7M32 20l7 7" stroke="url(#dragArrowGrad)" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M20 44h24" stroke="url(#dragArrowGrad)" stroke-width="2.5" stroke-linecap="round" />
+          <defs>
+            <linearGradient id="dragCircleGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#a78bfa" />
+              <stop offset="1" stop-color="#60a5fa" />
+            </linearGradient>
+            <linearGradient id="dragArrowGrad" x1="25" y1="20" x2="39" y2="44" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#a78bfa" />
+              <stop offset="1" stop-color="#60a5fa" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <p class="drag-overlay__title">Drop to convert</p>
+      <p class="drag-overlay__sub">Release your file anywhere</p>
+    </div>
+  </div>
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header id="app-header" role="banner">
+    <div class="header-inner">
+
+      <a href="./" class="logo" aria-label="Transformo home">
+        <div class="logo__mark" aria-hidden="true">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <rect width="36" height="36" rx="10" fill="url(#logoRect)" />
+            <path d="M11 14l7-4.5 7 4.5-7 4.5-7-4.5z" fill="white" opacity="0.95" />
+            <path d="M11 22l7 4.5 7-4.5-7-4.5-7 4.5z" fill="white" opacity="0.6" />
+            <path d="M11 14v8M25 14v8" stroke="white" stroke-opacity="0.2" stroke-width="0.5" />
+            <defs>
+              <linearGradient id="logoRect" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#7C3AED" />
+                <stop offset="1" stop-color="#2563EB" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo__wordmark">Transformo</span>
+      </a>
+
+      <nav class="header-actions" aria-label="App controls">
+        <!-- Theme toggle -->
+        <button id="theme-button" class="icon-btn" type="button" aria-label="Toggle light/dark mode"
+          title="Toggle theme">
+          <!-- Sun icon (shown in dark mode) -->
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <circle cx="9" cy="9" r="3.5" stroke="currentColor" stroke-width="1.5" />
+            <path
+              d="M9 1v2M9 15v2M1 9h2M15 9h2M3.22 3.22l1.42 1.42M13.36 13.36l1.42 1.42M3.22 14.78l1.42-1.42M13.36 4.64l1.42-1.42"
+              stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+          <!-- Moon icon (shown in light mode) -->
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M15 11.3A7 7 0 016.7 3a7 7 0 100 12 6.96 6.96 0 008.3-3.7z" stroke="currentColor"
+              stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <!-- Advanced mode toggle -->
+        <button id="mode-button" class="btn btn--ghost" type="button" aria-pressed="false" title="Toggle Advanced mode">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+            <path d="M7.5 1L9.18 5.5H14L10.5 8.5 11.8 13 7.5 10.2 3.2 13l1.3-4.5L1 5.5h4.82L7.5 1z"
+              stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" />
+          </svg>
+          <span class="mode-label">Advanced</span>
+        </button>
+      </nav>
+
+    </div>
+  </header>
+
+  <!-- ── Hero / Drop zone ────────────────────────────────────────────────── -->
+  <main id="app-main" role="main">
+
+    <section class="hero reveal">
+      <h1 class="hero__title">
+        Convert <em>any file</em><br>to any format
+      </h1>
+      <p class="hero__subtitle">
+        Hundreds of formats. Zero uploads. Runs entirely in your browser.
+      </p>
+      <div class="hero__chips" aria-label="Highlights">
+        <span class="hero-chip">Local-first conversion</span>
+        <span class="hero-chip">No cloud uploads</span>
+        <span class="hero-chip">Multi-step smart routing</span>
+      </div>
+    </section>
+
+    <!-- Drop zone card -->
+    <section id="file-area" class="drop-zone reveal reveal--delay-1" role="button" tabindex="0"
+      aria-label="Drop zone — click to browse or drag a file here">
+      <div id="file-area-content" class="drop-zone__content">
+        <!-- populated by dropzone.ts -->
+      </div>
+    </section>
+
+    <!-- ── Format panels ───────────────────────────────────────────────── -->
+    <section class="panels reveal reveal--delay-2" aria-label="Format selection">
+
+      <!-- Convert From -->
+      <div class="format-container" id="from-container">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="1" y="1" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3" />
+              <path d="M3.5 4.5h7M3.5 7h5M3.5 9.5h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+            </svg>
+            From
+          </h2>
+          <span id="from-count" class="panel-count" aria-live="polite">—</span>
+        </div>
+        <div class="search-wrapper">
+          <svg class="search-wrapper__icon" width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+            <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.2" />
+            <path d="M8.5 8.5L11 11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+          </svg>
+          <input id="search-from" class="search-input" type="search" placeholder="Search formats…"
+            aria-label="Search input formats" autocomplete="off" spellcheck="false">
+        </div>
+        <div id="from-list" class="format-list" role="listbox" aria-label="Input formats"></div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="panels__divider" aria-hidden="true">
+        <div class="panels__arrow-wrap">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <circle cx="11" cy="11" r="10.25" stroke="url(#arrowG)" stroke-width="1.5" />
+            <path d="M7.5 11h7M12 8l3 3-3 3" stroke="url(#arrowG)" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <defs>
+              <linearGradient id="arrowG" x1="1" y1="1" x2="21" y2="21" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#a78bfa" />
+                <stop offset="1" stop-color="#60a5fa" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Convert To -->
+      <div class="format-container" id="to-container">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M3 7h8M9 4l3 3-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+            To
+          </h2>
+          <span id="to-count" class="panel-count" aria-live="polite">—</span>
+        </div>
+        <div class="search-wrapper">
+          <svg class="search-wrapper__icon" width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+            <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.2" />
+            <path d="M8.5 8.5L11 11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
+          </svg>
+          <input id="search-to" class="search-input" type="search" placeholder="Search formats…"
+            aria-label="Search output formats" autocomplete="off" spellcheck="false">
+        </div>
+        <div id="smart-suggestions" class="smart-suggestions" aria-label="Suggested output formats"></div>
+        <div id="to-list" class="format-list" role="listbox" aria-label="Output formats"></div>
+      </div>
+
+    </section>
+
+    <section id="support-strip" class="support-strip reveal reveal--delay-2" aria-label="Support Transformo" hidden>
+      <div class="support-strip__copy">
+        <p class="support-strip__eyebrow">Support Transformo</p>
+        <h2 class="support-strip__title">Keep conversions free, private, and fast</h2>
+        <p class="support-strip__sub">If this saved you time, a small donation helps fund more formats and better performance.</p>
+      </div>
+      <div class="support-strip__actions">
+        <button id="support-donate-button" class="btn btn--primary support-strip__donate" type="button" hidden>
+          Donate
+        </button>
+      </div>
+      <div id="ad-slot-fallback" class="support-strip__ad support-strip__ad--fallback" aria-label="Sponsor space">
+        Sponsor space available · Email for featured placement
+      </div>
+      <div id="ad-slot-container" class="support-strip__ad" hidden aria-label="Advertisement">
+        <ins id="adsbygoogle-slot" class="adsbygoogle" style="display:block; min-height:96px;"></ins>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Convert bar ───────────────────────────────────────────────────── -->
+  <footer id="convert-bar" role="contentinfo">
+    <p id="convert-info-text" class="convert-bar__info" aria-live="polite">
+      Drop a file, then select formats to convert
+    </p>
+    <button id="convert-button" class="btn btn--primary" type="button" disabled aria-describedby="convert-info-text">
+      <span class="btn-loader" aria-hidden="true"></span>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M3 8h10M11 5l3 3-3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </svg>
+      <span id="convert-button-label">Convert</span>
+    </button>
+  </footer>
+
+  <!-- ── Popup overlay ─────────────────────────────────────────────────── -->
+  <div id="popup-bg" class="overlay" aria-hidden="true" role="presentation"></div>
+  <div id="popup" class="popup" role="dialog" aria-modal="true" aria-label="Conversion status" aria-hidden="true"
+    style="display:none">
+    <div class="popup-inner"></div>
+  </div>
+
+  <!-- ── Toast container ───────────────────────────────────────────────── -->
+  <div id="toast-container" class="toast-container" role="log" aria-live="polite" aria-atomic="false"></div>
+
+  <script type="module" src="src/main.ts"></script>
+</body>
+
+</html>

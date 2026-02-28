@@ -1,0 +1,16 @@
+{
+  "name": "Transformo",
+  "short_name": "Transformo",
+  "description": "Universal file converter that runs locally in your browser.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#070f1d",
+  "theme_color": "#0d0d1a",
+  "icons": [
+    {
+      "src": "./favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

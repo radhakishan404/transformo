@@ -1,0 +1,294 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>eSpeak-ng Demo</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1 {
+        font-size: 24px;
+        margin-bottom: 30px;
+      }
+      .info {
+        background: #e3f2fd;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+      }
+      input[type="range"] {
+        width: 100%;
+        margin-bottom: 15px;
+      }
+      select, textarea {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      textarea {
+        min-height: 100px;
+        font-family: inherit;
+      }
+      button {
+        background: #2196f3;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-right: 10px;
+      }
+      button:hover {
+        background: #1976d2;
+      }
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .status {
+        margin-top: 20px;
+        padding: 10px;
+        border-radius: 4px;
+        display: none;
+      }
+      .status.show {
+        display: block;
+      }
+      .status.loading {
+        background: #fff3cd;
+        color: #856404;
+      }
+      .status.error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .status.success {
+        background: #d4edda;
+        color: #155724;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>eSpeak-ng Demo</h1>
+    
+    <div class="info">
+      <strong>Note:</strong> Click any button to initialize audio (required by browsers).
+    </div>
+
+    <textarea id="text">Hello! This is a test of the eSpeak-ng text to speech engine running entirely in your browser.</textarea>
+    
+    <label for="voice">Voice:</label>
+    <select id="voice">
+      <option value="">Loading voices...</option>
+    </select>
+    
+    <label for="rate">Rate: <span id="rate-value">175</span></label>
+    <input type="range" id="rate" min="80" max="450" value="175">
+    
+    <label for="pitch">Pitch: <span id="pitch-value">50</span></label>
+    <input type="range" id="pitch" min="0" max="100" value="50">
+    
+    <label for="volume">Volume: <span id="volume-value">100</span>%</label>
+    <input type="range" id="volume" min="0" max="150" value="100">
+
+    <div>
+      <button id="speak-btn" disabled>Speak</button>
+      <button id="download-btn" disabled>Download WAV</button>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <script src="js/espeakng-simple.js"></script>
+    <script>
+      let tts = null;
+
+      const speakBtn = document.getElementById('speak-btn');
+      const downloadBtn = document.getElementById('download-btn');
+      const status = document.getElementById('status');
+      const voiceSelect = document.getElementById('voice');
+      const rateSlider = document.getElementById('rate');
+      const pitchSlider = document.getElementById('pitch');
+      const volumeSlider = document.getElementById('volume');
+      const textArea = document.getElementById('text');
+
+      // Update displayed values
+      rateSlider.oninput = function() {
+        document.getElementById('rate-value').textContent = this.value;
+      };
+      pitchSlider.oninput = function() {
+        document.getElementById('pitch-value').textContent = this.value;
+      };
+      volumeSlider.oninput = function() {
+        document.getElementById('volume-value').textContent = this.value;
+      };
+
+      // Initialize TTS
+      function initTTS() {
+        showStatus('Loading eSpeak-ng...', 'loading');
+        
+        tts = new SimpleTTS({
+          defaultVoice: 'en-us',
+          defaultVolume: 1.0
+        });
+        
+        tts.onReady(function(error) {
+          if (error) {
+            showStatus('Failed to load eSpeak-ng', 'error');
+            return;
+          }
+          
+          showStatus('Ready!', 'success');
+          speakBtn.disabled = false;
+          downloadBtn.disabled = false;
+          
+          // Load voices
+          tts.getVoices(function(voices) {
+            voiceSelect.innerHTML = '';
+            let defaultSet = false;
+            
+            voices.forEach(function(voice) {
+              const option = document.createElement('option');
+              option.value = voice.identifier;
+              option.textContent = voice.name + ' (' + voice.languages.map(l => l.name).join(', ') + ')';
+              
+              // Set english-us as default
+              if (voice.identifier === 'en-us' || 
+                  (!defaultSet && voice.identifier.startsWith('en'))) {
+                option.selected = true;
+                defaultSet = true;
+              }
+              
+              voiceSelect.appendChild(option);
+            });
+          });
+        });
+      }
+
+      // Show status
+      function showStatus(message, type) {
+        status.textContent = message;
+        status.className = 'status show ' + type;
+        if (type === 'success') {
+          setTimeout(() => status.className = 'status', 3000);
+        }
+      }
+
+      // Convert to WAV
+      function audioDataToWAV(audioData, sampleRate) {
+        const length = audioData.length;
+        const arrayBuffer = new ArrayBuffer(44 + length * 2);
+        const view = new DataView(arrayBuffer);
+        
+        const writeString = (offset, string) => {
+          for (let i = 0; i < string.length; i++) {
+            view.setUint8(offset + i, string.charCodeAt(i));
+          }
+        };
+        
+        writeString(0, 'RIFF');
+        view.setUint32(4, 36 + length * 2, true);
+        writeString(8, 'WAVE');
+        writeString(12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, 1, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * 2, true);
+        view.setUint16(32, 2, true);
+        view.setUint16(34, 16, true);
+        writeString(36, 'data');
+        view.setUint32(40, length * 2, true);
+        
+        let offset = 44;
+        for (let i = 0; i < length; i++) {
+          const sample = Math.max(-1, Math.min(1, audioData[i]));
+          view.setInt16(offset, sample * 0x7FFF, true);
+          offset += 2;
+        }
+        
+        return arrayBuffer;
+      }
+
+      // Speak button
+      speakBtn.onclick = function() {
+        showStatus('Generating speech...', 'loading');
+        speakBtn.disabled = true;
+        
+        const options = {
+          voice: voiceSelect.value,
+          rate: parseInt(rateSlider.value),
+          pitch: parseInt(pitchSlider.value),
+          volume: parseInt(volumeSlider.value) / 100
+        };
+        
+        tts.speak(textArea.value, options, function(audioData, sampleRate) {
+          speakBtn.disabled = false;
+          
+          if (!audioData) {
+            showStatus('Failed to generate speech', 'error');
+            return;
+          }
+          
+          showStatus('Playing...', 'success');
+          
+          // Use built-in playback helper with correct sample rate
+          const playback = SimpleTTS.playAudioData(audioData, sampleRate);
+          if (playback) {
+            playback.source.onended = () => showStatus('Finished', 'success');
+          }
+        });
+      };
+
+      // Download button
+      downloadBtn.onclick = function() {
+        showStatus('Generating...', 'loading');
+        downloadBtn.disabled = true;
+        
+        const options = {
+          voice: voiceSelect.value,
+          rate: parseInt(rateSlider.value),
+          pitch: parseInt(pitchSlider.value),
+          volume: parseInt(volumeSlider.value) / 100
+        };
+        
+        tts.speak(textArea.value, options, function(audioData, sampleRate) {
+          downloadBtn.disabled = false;
+          
+          if (!audioData) {
+            showStatus('Failed to generate speech', 'error');
+            return;
+          }
+          
+          const wavData = audioDataToWAV(audioData, sampleRate);
+          const blob = new Blob([wavData], { type: 'audio/wav' });
+          const url = URL.createObjectURL(blob);
+          
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'speech.wav';
+          a.click();
+          
+          URL.revokeObjectURL(url);
+          showStatus('Downloaded!', 'success');
+        });
+      };
+
+      // Initialize
+      initTTS();
+    </script>
+  </body>
+</html>

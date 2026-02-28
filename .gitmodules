@@ -1,0 +1,18 @@
+[submodule "src/handlers/envelope"]
+	path = src/handlers/envelope
+	url = https://github.com/p2r3/envelope
+[submodule "src/handlers/qoi-fu"]
+	path = src/handlers/qoi-fu
+	url = https://github.com/pfusik/qoi-fu
+[submodule "src/handlers/sppd"]
+	path = src/handlers/sppd
+	url = https://github.com/p2r3/sppd
+[submodule "src/handlers/qoa-fu"]
+	path = src/handlers/qoa-fu
+	url = https://github.com/pfusik/qoa-fu
+[submodule "src/handlers/image-to-txt"]
+	path = src/handlers/image-to-txt
+	url = https://git.sr.ht/~thezipcreator/image-to-txt
+[submodule "src/handlers/espeakng.js"]
+	path = src/handlers/espeakng.js
+	url = https://github.com/TheZipCreator/espeakng.js

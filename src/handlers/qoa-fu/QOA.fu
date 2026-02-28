@@ -1,0 +1,354 @@
+// QOA.fu - encoder and decoder of the "Quite OK Audio" format
+//
+// Copyright (C) 2023-2024 Piotr Fusik
+//
+// MIT License:
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+/// Least Mean Squares Filter.
+class LMS
+{
+	internal int[4] History;
+	internal int[4] Weights;
+
+	internal void Assign!(LMS source)
+	{
+		source.History.CopyTo(0, History, 0, 4);
+		source.Weights.CopyTo(0, Weights, 0, 4);
+	}
+
+	internal int Predict() => (History[0] * Weights[0] + History[1] * Weights[1] + History[2] * Weights[2] + History[3] * Weights[3]) >> 13;
+
+	internal void Update!(int sample, int residual)
+	{
+		int delta = residual >> 4;
+		Weights[0] += History[0] < 0 ? -delta : delta;
+		Weights[1] += History[1] < 0 ? -delta : delta;
+		Weights[2] += History[2] < 0 ? -delta : delta;
+		Weights[3] += History[3] < 0 ? -delta : delta;
+		History[0] = History[1];
+		History[1] = History[2];
+		History[2] = History[3];
+		History[3] = sample;
+	}
+}
+
+/// Common part of the "Quite OK Audio" format encoder and decoder.
+public abstract class QOABase
+{
+	protected int FrameHeader;
+
+	/// Maximum number of channels supported by the format.
+	public const int MaxChannels = 8;
+
+	/// Returns the number of audio channels.
+	public int GetChannels() => FrameHeader >> 24;
+
+	/// Returns the sample rate in Hz.
+	public int GetSampleRate() => FrameHeader & 0xffffff;
+
+	protected const int SliceSamples = 20;
+	protected const int MaxFrameSlices = 256;
+
+	/// Maximum number of samples per frame.
+	public const int MaxFrameSamples = MaxFrameSlices * SliceSamples;
+
+	protected int GetFrameBytes(int sampleCount)
+	{
+		int slices = (sampleCount + (SliceSamples - 1)) / SliceSamples;
+		return 8 + GetChannels() * (16 + slices * 8);
+	}
+
+	protected const 1 .. 2048 [16] ScaleFactors = { 1, 7, 21, 45, 84, 138, 211, 304, 421, 562, 731, 928, 1157, 1419, 1715, 2048 };
+
+	protected static int Dequantize(int quantized, int scaleFactor)
+	{
+		int dequantized;
+		switch (quantized >> 1) {
+		case 0:
+			dequantized = scaleFactor * 3 + 2 >> 2;
+			break;
+		case 1:
+			dequantized = scaleFactor * 5 + 1 >> 1;
+			break;
+		case 2:
+			dequantized = scaleFactor * 9 + 1 >> 1;
+			break;
+		default:
+			dequantized = scaleFactor * 7;
+			break;
+		}
+		return (quantized & 1) != 0 ? -dequantized : dequantized;
+	}
+}
+
+/// Encoder of the "Quite OK Audio" format.
+public abstract class QOAEncoder : QOABase
+{
+	/// Writes the 64-bit integer in big endian order.
+	/// Returns `true` on success.
+	protected abstract bool WriteLong!(
+		/// The integer to be written to the QOA stream.
+		long l);
+
+	LMS()[MaxChannels] LMSes;
+
+	/// Writes the file header.
+	/// Returns `true` on success.
+	public bool WriteHeader!(
+		/// File length in samples per channel.
+		int totalSamples,
+		/// Number of audio channels.
+		int channels,
+		/// Sample rate in Hz.
+		int sampleRate)
+	{
+		if (totalSamples <= 0
+		 || channels <= 0 || channels > MaxChannels
+		 || sampleRate <= 0 || sampleRate >= 1 << 24)
+			return false;
+		FrameHeader = channels << 24 | sampleRate;
+		for (int c = 0; c < channels; c++) {
+			LMSes[c].History.Fill(0);
+			LMSes[c].Weights[0] = 0;
+			LMSes[c].Weights[1] = 0;
+			LMSes[c].Weights[2] = -(1 << 13);
+			LMSes[c].Weights[3] = 1 << 14;
+		}
+		long magic = 'q' << 24 | 'o' << 16 | 'a' << 8 | 'f';
+		return WriteLong(magic << 32 | totalSamples);
+	}
+
+	bool WriteLMS!(int[] a)
+	{
+		long a0 = a[0];
+		long a1 = a[1];
+		long a2 = a[2];
+		return WriteLong(a0 << 48 | (a1 & 0xffff) << 32 | (a2 & 0xffff) << 16 | (a[3] & 0xffff));
+	}
+
+	/// Encodes and writes a frame.
+	public bool WriteFrame!(
+		/// PCM samples: `samplesCount * channels` elements.
+		short[] samples,
+		/// Number of samples per channel.
+		int samplesCount)
+	{
+		if (samplesCount <= 0 || samplesCount > MaxFrameSamples)
+			return false;
+		long header = FrameHeader;
+		if (!WriteLong(header << 32 | samplesCount << 16 | GetFrameBytes(samplesCount)))
+			return false;
+		int channels = GetChannels();
+		for (int c = 0; c < channels; c++) {
+			if (!WriteLMS(LMSes[c].History) || !WriteLMS(LMSes[c].Weights))
+				return false;
+		}
+
+		LMS() lms;
+		LMS() bestLMS;
+		0 .. 15 [MaxChannels] lastScaleFactors = 0;
+		for (int sampleIndex = 0; sampleIndex < samplesCount; sampleIndex += SliceSamples) {
+			int sliceSamples = Math.Min(samplesCount - sampleIndex, SliceSamples);
+			for (int c = 0; c < channels; c++) {
+				long bestRank = long.MaxValue;
+				long bestSlice = 0;
+				for (int scaleFactorDelta = 0; scaleFactorDelta < 16; scaleFactorDelta++) {
+					int scaleFactor = (lastScaleFactors[c] + scaleFactorDelta) & 0xf;
+					lms.Assign(LMSes[c]);
+					const 32 .. 65536 [16] reciprocals = { 65536, 9363, 3121, 1457, 781, 475, 311, 216, 156, 117, 90, 71, 57, 47, 39, 32 };
+					int reciprocal = reciprocals[scaleFactor];
+					long slice = scaleFactor;
+					long currentRank = 0;
+					for (int s = 0; s < sliceSamples; s++) {
+						int sample = samples[(sampleIndex + s) * channels + c];
+						int predicted = lms.Predict();
+						int residual = sample - predicted;
+						int scaled = residual * reciprocal + (1 << 15) >> 16;
+						if (scaled != 0)
+							scaled += scaled < 0 ? 1 : -1;
+						if (residual != 0)
+							scaled += residual > 0 ? 1 : -1;
+						const 0 .. 7 [17] quantTab = { 7, 7, 7, 5, 5, 3, 3, 1, 0, 0, 2, 2, 4, 4, 6, 6, 6 };
+						int quantized = quantTab[8 + Math.Clamp(scaled, -8, 8)];
+						int dequantized = Dequantize(quantized, ScaleFactors[scaleFactor]);
+						int reconstructed = Math.Clamp(predicted + dequantized, short.MinValue, short.MaxValue);
+						long error = sample - reconstructed;
+						currentRank += error * error;
+						int weightsPenalty = ((lms.Weights[0] * lms.Weights[0]
+							+ lms.Weights[1] * lms.Weights[1]
+							+ lms.Weights[2] * lms.Weights[2]
+							+ lms.Weights[3] * lms.Weights[3]) >> 18) - 0x8ff;
+						if (weightsPenalty > 0)
+							currentRank += weightsPenalty;
+						if (currentRank >= bestRank)
+							break;
+						lms.Update(reconstructed, dequantized);
+						slice = slice << 3 | quantized;
+					}
+					if (currentRank < bestRank) {
+						bestRank = currentRank;
+						bestSlice = slice;
+						bestLMS.Assign(lms);
+					}
+				}
+				LMSes[c].Assign(bestLMS);
+				bestSlice <<= (SliceSamples - sliceSamples) * 3;
+				lastScaleFactors[c] = bestSlice >> (SliceSamples * 3);
+				if (!WriteLong(bestSlice))
+					return false;
+			}
+		}
+		return true;
+	}
+}
+
+/// Decoder of the "Quite OK Audio" format.
+public abstract class QOADecoder : QOABase
+{
+	/// Reads a byte from the stream.
+	/// Returns the unsigned byte value or -1 on EOF.
+	protected abstract int ReadByte!();
+
+	/// Seeks the stream to the given position.
+	protected abstract void SeekToByte!(
+		/// File offset in bytes.
+		int position);
+
+	int Buffer;
+	int BufferBits;
+
+	int ReadBits!(int bits)
+	{
+		while (BufferBits < bits) {
+			int b = ReadByte();
+			if (b < 0)
+				return -1;
+			Buffer = Buffer << 8 | b;
+			BufferBits += 8;
+		}
+		BufferBits -= bits;
+		int result = Buffer >> BufferBits;
+		Buffer &= (1 << BufferBits) - 1;
+		return result;
+	}
+
+	int TotalSamples;
+	int PositionSamples;
+
+	/// Reads the file header.
+	/// Returns `true` if the header is valid.
+	public bool ReadHeader!()
+	{
+		if (ReadByte() != 'q' || ReadByte() != 'o' || ReadByte() != 'a' || ReadByte() != 'f')
+			return false;
+		BufferBits = Buffer = 0;
+		TotalSamples = ReadBits(32);
+		if (TotalSamples <= 0)
+			return false;
+		FrameHeader = ReadBits(32);
+		if (FrameHeader <= 0)
+			return false;
+		PositionSamples = 0;
+		int channels = GetChannels();
+		return channels > 0 && channels <= MaxChannels && GetSampleRate() > 0;
+	}
+
+	/// Returns the file length in samples per channel.
+	public int GetTotalSamples() => TotalSamples;
+
+	int GetMaxFrameBytes() => 8 + GetChannels() * (16 + MaxFrameSlices * 8);
+
+	bool ReadLMS!(int[]! result)
+	{
+		for (int i = 0; i < 4; i++) {
+			int hi = ReadByte();
+			if (hi < 0)
+				return false;
+			int lo = ReadByte();
+			if (lo < 0)
+				return false;
+			result[i] = (hi ^ 0x80) - 0x80 << 8 | lo;
+		}
+		return true;
+	}
+
+	/// Reads and decodes a frame.
+	/// Returns the number of samples per channel.
+	public int ReadFrame!(
+		/// PCM samples.
+		/// The buffer must accommodate `FrameSamples` * `GetChannels()` elements.
+		short[]! samples)
+	{
+		if (PositionSamples > 0 && ReadBits(32) != FrameHeader)
+			return -1;
+		int samplesCount = ReadBits(16);
+		if (samplesCount <= 0 || samplesCount > MaxFrameSamples || samplesCount > TotalSamples - PositionSamples)
+			return -1;
+		int channels = GetChannels();
+		int slices = (samplesCount + (SliceSamples - 1)) / SliceSamples;
+		if (ReadBits(16) != 8 + channels * (16 + slices * 8))
+			return -1;
+
+		LMS()[MaxChannels] lmses;
+		for (int c = 0; c < channels; c++) {
+			if (!ReadLMS(lmses[c].History) || !ReadLMS(lmses[c].Weights))
+				return -1;
+		}
+
+		for (int sampleIndex = 0; sampleIndex < samplesCount; sampleIndex += SliceSamples) {
+			for (int c = 0; c < channels; c++) {
+				int scaleFactor = ReadBits(4);
+				if (scaleFactor < 0)
+					return -1;
+				scaleFactor = ScaleFactors[scaleFactor];
+				int sampleOffset = sampleIndex * channels + c;
+				for (int s = 0; s < SliceSamples; s++) {
+					int quantized = ReadBits(3);
+					if (quantized < 0)
+						return -1;
+					if (sampleIndex + s >= samplesCount)
+						continue;
+					int dequantized = Dequantize(quantized, scaleFactor);
+					int reconstructed = Math.Clamp(lmses[c].Predict() + dequantized, short.MinValue, short.MaxValue);
+					lmses[c].Update(reconstructed, dequantized);
+					samples[sampleOffset] = reconstructed;
+					sampleOffset += channels;
+				}
+			}
+		}
+		PositionSamples += samplesCount;
+		return samplesCount;
+	}
+
+	/// Seeks to the given time offset.
+	/// Requires the input stream to be seekable with `SeekToByte`.
+	public void SeekToSample!(
+		/// Position from the beginning of the file.
+		int position)
+	{
+		int frame = position / MaxFrameSamples;
+		SeekToByte(frame == 0 ? 12 : 8 + frame * GetMaxFrameBytes());
+		PositionSamples = frame * MaxFrameSamples;
+	}
+
+	/// Returns `true` if all frames have been read.
+	public bool IsEnd() => PositionSamples >= TotalSamples;
+}

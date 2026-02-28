@@ -1,0 +1,16 @@
+# Dependencies / builds
+node_modules/
+dist/
+
+# Local env
+.env
+.env.local
+.env.*.local
+
+# Local tooling
+.vercel/
+cache.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
