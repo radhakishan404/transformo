@@ -889,15 +889,6 @@ strong {
   max-width: 60ch;
 }
 
-.support-strip__actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.support-strip__donate {
-  min-width: 120px;
-}
-
 .support-strip__ad {
   grid-column: 1 / -1;
   border-radius: var(--radius-md);
@@ -1129,12 +1120,6 @@ strong {
 
 .popup-cta--primary {
   box-shadow: 0 10px 25px rgba(29, 120, 255, 0.35);
-}
-
-.popup-cta--donate {
-  background: linear-gradient(120deg, #15c38e, #38e1b4);
-  color: #012018;
-  box-shadow: 0 8px 24px rgba(21, 195, 142, 0.28);
 }
 
 .popup-cta--ghost {
@@ -1943,10 +1928,6 @@ strong {
 
   .support-strip {
     grid-template-columns: 1fr;
-  }
-
-  .support-strip__actions {
-    justify-content: flex-start;
   }
 }
 

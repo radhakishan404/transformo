@@ -33,7 +33,6 @@ export const AppElements = {
 
     convertInfoText: requireElement<HTMLParagraphElement>('#convert-info-text'),
     supportStrip: requireElement<HTMLElement>('#support-strip'),
-    supportDonateButton: requireElement<HTMLButtonElement>('#support-donate-button'),
 
     popupOverlay: requireElement<HTMLDivElement>('#popup-bg'),
     popupBox: requireElement<HTMLDivElement>('#popup'),

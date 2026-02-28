@@ -1,27 +1,19 @@
 export interface MonetizationSettings {
-  readonly donatePrimaryUrl: string;
-  readonly donateSecondaryUrl: string;
   readonly feedbackUrl: string;
   readonly adsenseClientId: string;
   readonly adsenseSlotId: string;
-  readonly donationEnabled: boolean;
   readonly adsEnabled: boolean;
 }
 
 const settings: MonetizationSettings = (() => {
-  const donatePrimaryUrl = (import.meta.env.VITE_DONATE_URL ?? '').trim();
-  const donateSecondaryUrl = (import.meta.env.VITE_DONATE_SECONDARY_URL ?? '').trim();
   const feedbackUrl = (import.meta.env.VITE_FEEDBACK_URL ?? '').trim();
   const adsenseClientId = (import.meta.env.VITE_ADSENSE_CLIENT_ID ?? '').trim();
   const adsenseSlotId = (import.meta.env.VITE_ADSENSE_SLOT_ID ?? '').trim();
 
   return {
-    donatePrimaryUrl,
-    donateSecondaryUrl,
     feedbackUrl,
     adsenseClientId,
     adsenseSlotId,
-    donationEnabled: Boolean(donatePrimaryUrl || donateSecondaryUrl),
     adsEnabled: Boolean(adsenseClientId && adsenseSlotId),
   };
 })();

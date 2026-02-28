@@ -367,12 +367,6 @@ AppElements.convertButton.addEventListener('click', async () => {
     const resolvedToLabel = resolvedToOption.format.format.toUpperCase();
     showSuccessPopup(fromLabel, resolvedToLabel, pathLabels, {
       onDismiss: hidePopup,
-      onDonatePrimary: monetization.donatePrimaryUrl
-        ? () => openExternalLink(monetization.donatePrimaryUrl, 'donation_clicked', 'primary')
-        : undefined,
-      onDonateSecondary: monetization.donateSecondaryUrl
-        ? () => openExternalLink(monetization.donateSecondaryUrl, 'donation_clicked', 'secondary')
-        : undefined,
       onFeedback: monetization.feedbackUrl
         ? () => openExternalLink(monetization.feedbackUrl, 'feedback_clicked', 'popup')
         : undefined,
@@ -426,21 +420,8 @@ function downloadFiles(files: FileData[], extension: string): void {
 }
 
 function configureMonetizationStrip(): void {
-  const showSupportSurface = monetization.donationEnabled || monetization.adsEnabled || Boolean(monetization.feedbackUrl);
+  const showSupportSurface = monetization.adsEnabled;
   AppElements.supportStrip.hidden = !showSupportSurface;
-  if (!showSupportSurface) return;
-
-  if (!monetization.donationEnabled) {
-    AppElements.supportDonateButton.hidden = true;
-    return;
-  }
-
-  AppElements.supportDonateButton.hidden = false;
-  AppElements.supportDonateButton.addEventListener('click', () => {
-    const preferredUrl = monetization.donatePrimaryUrl || monetization.donateSecondaryUrl;
-    if (!preferredUrl) return;
-    openExternalLink(preferredUrl, 'donation_clicked', 'support_strip');
-  });
 }
 
 function openExternalLink(url: string, eventName: string, source: string): void {

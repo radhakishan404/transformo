@@ -8,8 +8,6 @@ import { AppElements } from './elements.ts';
 
 interface SuccessPopupActions {
     readonly onDismiss: () => void;
-    readonly onDonatePrimary?: () => void;
-    readonly onDonateSecondary?: () => void;
     readonly onFeedback?: () => void;
 }
 
@@ -100,7 +98,7 @@ export function showSuccessPopup(
     actions: SuccessPopupActions,
 ): void {
     const stepCount = Math.max(0, pathLabels.length - 1);
-    const hasSupport = Boolean(actions.onDonatePrimary || actions.onDonateSecondary || actions.onFeedback);
+    const hasFeedback = Boolean(actions.onFeedback);
 
     showPopup(`
     <div class="popup-success-glow" aria-hidden="true"></div>
@@ -112,26 +110,18 @@ export function showSuccessPopup(
       <span class="popup-summary__chip popup-summary__chip--ok">Downloaded</span>
     </div>
     <div class="route-path">${routeChips(pathLabels)}</div>
-    ${hasSupport ? `
+    ${hasFeedback ? `
       <section class="popup-support" aria-label="Support Transformo">
-        <p class="popup-support__title">Love this conversion quality?</p>
-        <p class="popup-support__sub">Support Transformo to keep it ad-light, fast, and local-first.</p>
+        <p class="popup-support__title">Have ideas to improve Transformo?</p>
+        <p class="popup-support__sub">Share your feedback and help shape the next version.</p>
         <div class="popup-support__actions">
-          ${actions.onDonatePrimary ? '<button id="popup-donate-primary-btn" class="popup-cta popup-cta--donate">Donate</button>' : ''}
-          ${actions.onDonateSecondary ? '<button id="popup-donate-secondary-btn" class="popup-cta popup-cta--ghost">Alt support</button>' : ''}
           ${actions.onFeedback ? '<button id="popup-feedback-btn" class="popup-cta popup-cta--ghost">Send feedback</button>' : ''}
         </div>
       </section>
     ` : ''}
     <button id="popup-dismiss-btn" class="popup-cta popup-cta--primary">Done</button>
-  `);
+    `);
     document.getElementById('popup-dismiss-btn')?.addEventListener('click', actions.onDismiss);
-    if (actions.onDonatePrimary) {
-        document.getElementById('popup-donate-primary-btn')?.addEventListener('click', actions.onDonatePrimary);
-    }
-    if (actions.onDonateSecondary) {
-        document.getElementById('popup-donate-secondary-btn')?.addEventListener('click', actions.onDonateSecondary);
-    }
     if (actions.onFeedback) {
         document.getElementById('popup-feedback-btn')?.addEventListener('click', actions.onFeedback);
     }

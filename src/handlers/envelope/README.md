@@ -36,4 +36,4 @@ getHTML(bytes); // Returns Promise to HTML string
 See `test/test.js` for a practical example.
 
 ## Contributing
-When submitting issues or pull requests, keep in mind that this project exists _primarily_ as a sister project under https://convert.to.it/, and _secondarily_ as a simple drop-in solution for document parsing on the web. That is to say, keep things lightweight and don't break compatibility with [p2r3/convert](https://github.com/p2r3/convert).
+When submitting issues or pull requests, keep in mind that this project is intended as a lightweight drop-in solution for browser-based document parsing. Please keep changes focused and avoid breaking compatibility with [p2r3/convert](https://github.com/p2r3/convert).

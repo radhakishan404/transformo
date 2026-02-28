@@ -9,19 +9,14 @@ This document keeps monetization practical while preserving a generous free tier
 - Track usage with GA4.
 - Build social proof (GitHub stars, demos, conversion quality).
 
-## Phase 2: Donation-only (Low friction)
+## Phase 2: Engagement-first (Low friction)
 
-Enable donations before hard paywalls.
+Focus on retention before any monetization layers.
 
-Recommended donation anchors (India-friendly):
-
-- ₹99: Supporter
-- ₹249: Power user support
-- ₹499: Sponsor a new format
-
-Global equivalents:
-
-- $3 / $7 / $15
+- Improve conversion success rate on top requested routes.
+- Add polished onboarding and examples for first-time users.
+- Collect actionable feedback from real users.
+- Publish regular release notes and roadmap updates.
 
 ## Phase 3: Freemium (No hard conversion cap)
 
@@ -53,19 +48,6 @@ Suggested Pro features:
 5. Set `VITE_GA_MEASUREMENT_ID` in Vercel env vars.
 6. Verify events in GA4 DebugView.
 
-## Donations
-
-Pick one primary + one backup:
-
-- Buy Me a Coffee
-- Ko-fi
-- GitHub Sponsors
-
-Set:
-
-- `VITE_DONATE_URL`
-- `VITE_DONATE_SECONDARY_URL`
-
 ## Ads (Later)
 
 Use only after traffic quality improves.
@@ -83,7 +65,7 @@ Early targets:
 
 - Visitor -> First conversion: > 35%
 - First conversion -> Repeat session in 7 days: > 20%
-- Repeat user -> Donation click: > 2%
+- Repeat user -> Feature request or feedback: > 2%
 
 ## Policy Pages to Add Before Ads
 
