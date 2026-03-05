@@ -17,6 +17,7 @@ declare global {
 }
 
 // Set up a basic webserver to host the distribution build
+const requestedPort = Number.parseInt(process.env.TRANSFORMO_TEST_PORT ?? "0", 10);
 const server = Bun.serve({
   async fetch (req) {
     let path = new URL(req.url).pathname.replace(BASE_PATH, "") || "index.html";
@@ -26,8 +27,9 @@ const server = Bun.serve({
     if (!(await file.exists())) return new Response("Not Found", { status: 404 });
     return new Response(file);
   },
-  port: 8080
+  port: Number.isFinite(requestedPort) ? requestedPort : 0
 });
+const origin = `http://localhost:${server.port}`;
 
 // Start puppeteer, wait for ready confirmation
 const browser = await puppeteer.launch({
@@ -36,15 +38,13 @@ const browser = await puppeteer.launch({
 });
 const page = await browser.newPage();
 
-await Promise.all([
-  new Promise(resolve => {
-    page.on("console", msg => {
-      const text = msg.text();
-      if (text === "Built initial format list.") resolve(null);
-    });
-  }),
-  page.goto(`http://localhost:8080${BASE_PATH}index.html`)
-]);
+await page.goto(`${origin}${BASE_PATH}index.html`);
+await page.waitForFunction(
+  () =>
+    document.querySelectorAll('#from-list .format-btn').length > 0 &&
+    (window.traversionGraph?.getData().nodes.length ?? 0) > 0,
+  { timeout: 120000 },
+);
 
 console.log("Setup finished.");
 

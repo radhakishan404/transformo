@@ -76,6 +76,15 @@ const formatCache = new Map<string, import('./FormatHandler.ts').FileFormat[]>()
 const engine = createConversionEngine(formatCache, traversalGraph, handlers);
 
 initAnalytics();
+
+// Legacy interop + test harness compatibility.
+window.supportedFormatCache = formatCache;
+window.tryConvertByTraversing = async (
+  files: FileData[],
+  from: ConvertPathNode,
+  to: ConvertPathNode,
+) => engine.tryConvert(files, from, to, simpleMode);
+window.traversionGraph = traversalGraph;
 initPwa(trackEvent);
 
 // Expose debug helpers on window (stripped in production builds by the bundler).

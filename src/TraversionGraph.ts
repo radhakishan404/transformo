@@ -277,6 +277,28 @@ export class TraversionGraph {
         this.listeners.forEach(l => l(state, path));
     }
 
+    private canonicalFormatId(format: FileFormat): string {
+        const id = format.format.toLowerCase();
+        const ext = format.extension.toLowerCase();
+        const mime = format.mime.toLowerCase();
+
+        if (mime === "image/jpeg" || id === "jpg" || id === "jpeg" || ext === "jpg" || ext === "jpeg") return "image/jpeg";
+        if (mime === "image/png" || id.includes("png") || ext === "png") return "image/png";
+        if (mime === "image/webp" || id.includes("webp") || ext === "webp") return "image/webp";
+        if (mime === "image/tiff" || id === "tif" || id === "tiff" || ext === "tif" || ext === "tiff") return "image/tiff";
+        if (mime === "text/markdown" || id === "md" || id === "markdown" || ext === "md") return "text/markdown";
+        if (mime === "text/plain" || id === "txt" || id === "text" || ext === "txt") return "text/plain";
+        if (mime === "text/html" || id === "htm" || id === "html" || ext === "htm" || ext === "html") return "text/html";
+        return `${mime}::${id || ext}`;
+    }
+
+    private isEquivalentFormat(a: FileFormat, b: FileFormat): boolean {
+        if (a.format.toLowerCase() === b.format.toLowerCase()) return true;
+        if (a.extension.toLowerCase() === b.extension.toLowerCase()) return true;
+        if (a.mime.toLowerCase() === b.mime.toLowerCase()) return true;
+        return this.canonicalFormatId(a) === this.canonicalFormatId(b);
+    }
+
     public async* searchPath(from: ConvertPathNode, to: ConvertPathNode, simpleMode: boolean): AsyncGenerator<ConvertPathNode[]> {
         // Dijkstra's algorithm
         // Priority queue of {index, cost, path}
@@ -288,6 +310,9 @@ export class TraversionGraph {
         let fromIndex = this.nodes.findIndex(node => node.mime === from.format.mime);
         let toIndex = this.nodes.findIndex(node => node.mime === to.format.mime);
         if (fromIndex === -1 || toIndex === -1) return []; // If either format is not in the graph, return empty array
+        const hasExactStartEdge = this.nodes[fromIndex].edges.some(edgeIndex =>
+            this.edges[edgeIndex].from.format.format.toLowerCase() === from.format.format.toLowerCase(),
+        );
         queue.add({ index: fromIndex, cost: 0, path: [from], visitedBorder: visited.length });
         console.log(`Starting path search from ${from.format.mime}(${from.handler?.name}) to ${to.format.mime}(${to.handler?.name}) (simple mode: ${simpleMode})`);
         let iterations = 0;
@@ -305,8 +330,12 @@ export class TraversionGraph {
                 // Return the path of handlers and formats to get from the input format to the output format
                 const logString = `${iterations} with cost ${current.cost.toFixed(3)}: ${current.path.map(p => p.handler.name + "(" + p.format.mime + ")").join(" → ")}`;
                 const foundPathLast = current.path.at(-1);
+                const outputFormatMatch =
+                    !!foundPathLast &&
+                    (this.isEquivalentFormat(to.format, foundPathLast.format)
+                        || this.canonicalFormatId(to.format) === this.canonicalFormatId(foundPathLast.format));
                 if (
-                    to.format.format === foundPathLast?.format.format &&
+                    outputFormatMatch &&
                     (simpleMode || !to.handler || to.handler.name === foundPathLast?.handler.name)
                 ) {
                     console.log(`Found path at iteration ${logString}`);
@@ -324,9 +353,10 @@ export class TraversionGraph {
             this.dispatchEvent("searching", current.path);
             this.nodes[current.index].edges.forEach(edgeIndex => {
                 let edge = this.edges[edgeIndex];
-                if ( // Always start paths from the exact format that the user selected
+                if (
                     current.path.length === 1
-                    && edge.from.format.format !== from.format.format
+                    && hasExactStartEdge
+                    && edge.from.format.format.toLowerCase() !== from.format.format.toLowerCase()
                 ) return;
                 const indexInVisited = visited.indexOf(edge.to.index);
                 if (indexInVisited >= 0 && indexInVisited < current.visitedBorder) return;
